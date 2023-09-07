@@ -6,13 +6,13 @@ var myCompany = new Company
     Name = "TrackEnsure",
     StaffAmount = 1502
 };
-
+//Get endpoint
 app.MapGet("/", () =>
 {
     var companyInfo = "My company name is " + myCompany.Name + ". It's staff counts about " + myCompany.StaffAmount + " workers";
     return companyInfo;
 });
-
+//Get endpoint
 app.MapGet("/randint", () =>
 {
     var randomizer = new Random();
@@ -20,6 +20,7 @@ app.MapGet("/randint", () =>
 
     return "Your random number is " + randomNumber + ". Congrats!!!";
 });
+//Middleware
 app.Use(async (context, next) =>
 {
     var password = context.Request.Query["password"];
