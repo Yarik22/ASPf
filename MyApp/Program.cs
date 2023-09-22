@@ -37,7 +37,7 @@ app.MapPost("/calculate", async context =>
 
     context.Response.ContentType = "text/html;charset=utf-8";
     var responseHtml =
-    $"<h2>Результат: {number1} {operation} {number2} = {result}</h2>" +
+    $"<h2>Р РµР·СѓР»СЊС‚Р°С‚: {number1} {operation} {number2} = {result}</h2>" +
     $"<a href=https://localhost:{port}>Back</a>";
     context.Response.StatusCode = 200;
     await context.Response.WriteAsync(responseHtml);
@@ -49,17 +49,17 @@ app.MapGet("/", async context =>
 
     sb.Append(
         "<div>" +
-            "<h1>Калькулятор</h1>" +
+            "<h1>РљР°Р»СЊРєСѓР»СЏС‚РѕСЂ</h1>" +
             "<form method=\"post\" action=\"/calculate\">" +
                 "<div>" +
                     "<label for=\"number1\">" +
-                            "Число 1:" +
+                            "Р§РёСЃР»Рѕ 1:" +
                     "</label>" +
                         "<input type=\"number\" id=\"number1\" name=\"number1\" required>" +
                 "</div>" +
                 "<div>" +
                     "<label for=\"operation\">" +
-                        "Операція:" +
+                        "РћРїРµСЂР°С†С–СЏ:" +
                     "</label>" +
                     "<select id=\"operation\" name=\"operation\" required>" +
                         "<option value=\"+\">+</option>" +
@@ -70,12 +70,12 @@ app.MapGet("/", async context =>
                 "</div>" +
                 "<div>" +
                     "<label for=\"number2\">" +
-                        "Число 2:" +
+                        "Р§РёСЃР»Рѕ 2:" +
                     "</label>" +
                     "<input type=\"number\" id=\"number2\" name=\"number2\" required>" +
                 "</div>" +
                 "<button type=\"submit\">" +
-                    "Обчислити" +
+                    "РћР±С‡РёСЃР»РёС‚Рё" +
                 "</button>" +
             "</form>" +
         "</div>"
