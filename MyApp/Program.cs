@@ -5,7 +5,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder();
 builder.Services
     .AddTransient<ICalcService, CalcService>()
-    .AddTransient<ITimeOfDayService,TimeOfDayService>();
+    .AddTransient<ITimeOfDayService, TimeOfDayService>();
 
 var app = builder.Build();
 
@@ -42,6 +42,7 @@ app.MapPost("/calculate", async context =>
     context.Response.StatusCode = 200;
     await context.Response.WriteAsync(responseHtml);
 });
+
 app.MapGet("/", async context =>
 {
     var sb = new StringBuilder();
@@ -84,6 +85,7 @@ app.MapGet("/", async context =>
 
     await context.Response.WriteAsync(sb.ToString());
 });
+
 app.MapGet("/time", async context =>
 {
     ITimeOfDayService? timeOfDayService = app.Services.GetService<ITimeOfDayService>();
@@ -99,4 +101,5 @@ app.MapGet("/time", async context =>
     await context.Response.WriteAsync(sb.ToString());
 
 });
+
 app.Run();

@@ -2,7 +2,7 @@
 
 namespace MyApp.services
 {
-    public class CalcService: ICalcService
+    public class CalcService : ICalcService
     {
         public float Sum(float a, float b) => a + b;
 
@@ -15,7 +15,7 @@ namespace MyApp.services
             if (b == 0)
                 throw new DivideByZeroException("Division by zero is Forbidden.");
 
-            return (float) a / b;
+            return (float)a / b;
         }
     }
 
