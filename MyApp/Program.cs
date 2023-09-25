@@ -11,7 +11,7 @@ var app = builder.Build();
 
 app.MapPost("/calculate", async context =>
 {
-    ICalcService? calcService = app.Services.GetService<ICalcService>();
+    ICalcService? calcService = context.RequestServices.GetService<ICalcService>();
     var form = await context.Request.ReadFormAsync();
     var number1 = int.Parse(form["number1"]);
     var number2 = int.Parse(form["number2"]);
@@ -88,7 +88,7 @@ app.MapGet("/", async context =>
 
 app.MapGet("/time", async context =>
 {
-    ITimeOfDayService? timeOfDayService = app.Services.GetService<ITimeOfDayService>();
+    ITimeOfDayService? timeOfDayService = context.RequestServices.GetService<ITimeOfDayService>();
     string dayThemeColor = timeOfDayService.GetDayThemeColor();
     string dayTimePhrase = timeOfDayService.GetDayTimePhrase();
     var sb = new StringBuilder();
