@@ -46,14 +46,19 @@ app.Map("library/books", async (HttpContext context, IConfiguration appConfig) =
     sb.Append("</div>");
     await context.Response.WriteAsync(sb.ToString());
 });
-app.Map("/", async context =>
+app.Map("/", async (HttpContext context, IConfiguration appConfig) =>
 {
+    User[] users = appConfig.GetSection("library:users").Get<User[]>();
     StringBuilder sb = new StringBuilder();
     sb.Append($"<div style='font-weight'>" +
         $"<ul>" +
         $"<li><a href='/library'>Main library</a></li>" +
-        $"<li><a href='/library/books'>Watch books</a></li>" +
-        $"</ul>" +
+        $"<li><a href='/library/books'>Watch books</a></li>");
+    for (int i = 0; i < users.Length; i++)
+    {
+        sb.Append($"<li><a href='/library/users/{i}'>{users[i].Name}</a></li>");
+    }
+    sb.Append($"</ul>" +
         $"</div>");
     await context.Response.WriteAsync(sb.ToString());
 });
