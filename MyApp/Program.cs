@@ -1,5 +1,5 @@
-using MyApp.interfaces;
-using MyApp.services;
+using MyApp.services.CalcService;
+using MyApp.services.TimeOfDayService;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder();
