@@ -1,105 +1,107 @@
-using MyApp.services.CalcService;
-using MyApp.services.TimeOfDayService;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Logging;
+using MyApp.loggers;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder();
-builder.Services
-    .AddTransient<ICalcService, CalcService>()
-    .AddTransient<ITimeOfDayService, TimeOfDayService>();
-
+builder.Logging.AddFile(Path.Combine(Directory.GetCurrentDirectory(), "logger.txt"));
 var app = builder.Build();
 
-app.MapPost("/calculate", async context =>
-{
-    ICalcService? calcService = context.RequestServices.GetService<ICalcService>();
-    var form = await context.Request.ReadFormAsync();
-    var number1 = int.Parse(form["number1"]);
-    var number2 = int.Parse(form["number2"]);
-    var operation = form["operation"];
-    var port = context.Request.Host.Port;
-    float result = 0;
 
-    switch (operation)
+app.MapGet("/setcookie",async context =>
+{
+    var sb = new StringBuilder();
+    sb.Append($"<h1>Додайте власні Cookies</h1>" +
+        $"<form id=\"cookieForm\" action=\"/set-cookie\" method=\"post\">" +
+        $"        <div>" +
+        $"           <label for=\"valueInput\">Значення:</label>" +
+        $"           <input type=\"text\" id=\"valueInput\" name=\"valueInput\" required>" +
+        $"      </div>" +
+        $"        <div>" +
+        $"           <label for=\"expirationDate\">Дата згорання Cookies:</label>" +
+        $"            <input type=\"datetime-local\" id=\"expirationDate\" name=\"expirationDate\" required>" +
+        $"        </div>" +
+        $"        <div>" +
+        $"            <button type=\"submit\">Встановити в Cookies</button>" +
+        $"        </div>" +
+        $"    </form>");
+    context.Response.ContentType = "text/html;charset=utf-8";
+    await context.Response.WriteAsync(sb.ToString());
+});
+
+app.MapPost("/set-cookie", async context =>
+{
+    context.Response.ContentType = "text/html;charset=utf-8";
+    var sb = new StringBuilder();
+    var value = context.Request.Form["valueInput"];
+    var expirationDate = context.Request.Form["expirationDate"];
+    if (DateTime.Parse(expirationDate) < DateTime.Now)
     {
-        case "+":
-            result = calcService.Sum(number1, number2);
-            break;
-        case "-":
-            result = calcService.Subtract(number1, number2);
-            break;
-        case "*":
-            result = calcService.Multiply(number1, number2);
-            break;
-        case "/":
-            result = calcService.Divide(number1, number2);
-            break;
+        sb.Append($"<p>Значення \"{value}\" не було збережено в Cookies, бо дата життя cookie була вичерпана.</p>");
+        await context.Response.WriteAsync(sb.ToString());
+        throw new ApplicationException("Wrong expiration date for cookie");
     }
+    if (!string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(expirationDate) && DateTime.TryParse(expirationDate, out var expiration))
+    {
+        var options = new CookieOptions
+        {
+            Expires = expiration,
+            IsEssential = true,
+        };
 
-    context.Response.ContentType = "text/html;charset=utf-8";
-    var responseHtml =
-    $"<h2>Результат: {number1} {operation} {number2} = {result}</h2>" +
-    $"<a href=https://localhost:{port}>Back</a>";
-    context.Response.StatusCode = 200;
-    await context.Response.WriteAsync(responseHtml);
-});
+        context.Response.Cookies.Append("myCookie", value, options);
 
-app.MapGet("/", async context =>
-{
-    var sb = new StringBuilder();
-
-    sb.Append(
-        "<div>" +
-            "<h1>Калькулятор</h1>" +
-            "<form method=\"post\" action=\"/calculate\">" +
-                "<div>" +
-                    "<label for=\"number1\">" +
-                            "Число 1:" +
-                    "</label>" +
-                        "<input type=\"number\" id=\"number1\" name=\"number1\" required>" +
-                "</div>" +
-                "<div>" +
-                    "<label for=\"operation\">" +
-                        "Операція:" +
-                    "</label>" +
-                    "<select id=\"operation\" name=\"operation\" required>" +
-                        "<option value=\"+\">+</option>" +
-                        "<option value=\"-\">-</option>" +
-                        "<option value=\"*\">*</option>" +
-                        "<option value=\"/\">/</option>" +
-                    "</select>" +
-                "</div>" +
-                "<div>" +
-                    "<label for=\"number2\">" +
-                        "Число 2:" +
-                    "</label>" +
-                    "<input type=\"number\" id=\"number2\" name=\"number2\" required>" +
-                "</div>" +
-                "<button type=\"submit\">" +
-                    "Обчислити" +
-                "</button>" +
-            "</form>" +
-        "</div>"
-        );
-
-    context.Response.ContentType = "text/html;charset=utf-8";
-
+        sb.Append($"<p>Значення \"{value}\" було збережено в Cookies.</p>" +
+            $"<a href='/'>Home</a> <br/>" +
+            $"<a href='/setcookie'>Set new Cookie</a>");
+    }
+    else
+    {
+        sb.Append("Помилка: Не вдалося зберегти дані в Cookies." + "<a href='/'>Home</a>" + "<a href='/setcookie'>Set new Cookie</a>");
+    }
     await context.Response.WriteAsync(sb.ToString());
 });
 
-app.MapGet("/time", async context =>
+app.MapGet("/checkcookie", async context =>
 {
-    ITimeOfDayService? timeOfDayService = context.RequestServices.GetService<ITimeOfDayService>();
-    string dayThemeColor = timeOfDayService.GetDayThemeColor();
-    string dayTimePhrase = timeOfDayService.GetDayTimePhrase();
-    var sb = new StringBuilder();
-    sb.Append(
-        $"<h1 style=\"color: {dayThemeColor};\">" +
-        $"{dayTimePhrase}" +
-        $"</h1>");
     context.Response.ContentType = "text/html;charset=utf-8";
-    context.Response.StatusCode = 200;
-    await context.Response.WriteAsync(sb.ToString());
-
+    var sb = new StringBuilder();
+    if (context.Request.Cookies.TryGetValue("myCookie", out var value))
+    {
+        sb.Append($"Значення в Cookies: {value}.");
+        await context.Response.WriteAsync(sb.ToString());
+    }
+    else
+    {
+        sb.Append($"В Cookies немає збережених значень.");
+        await context.Response.WriteAsync(sb.ToString());
+        throw new ApplicationException("No data in cookie");
+    }
 });
 
+app.Map("/", async (HttpContext context) =>
+{
+    var sb = new StringBuilder();
+    sb.Append($"<ul>" +
+        $"      <li><a href=\"/setcookie\">Set Cookie</a></li>" +
+        $"      <li><a href=\"/checkcookie\">Check Cookie</a></li>" +
+        $"    </ul>");
+    context.Response.ContentType = "text/html;charset=utf-8";
+    await context.Response.WriteAsync(sb.ToString());
+});
+
+app.Use(async (HttpContext context,RequestDelegate next) =>
+{
+    try
+    {
+        await next.Invoke(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Logger;
+        var now = DateTime.Now.ToString();
+        logger.LogError(now + " : " + ex.Message);
+        throw;
+    }
+});
 app.Run();
